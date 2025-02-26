@@ -16,12 +16,15 @@ jobs:
       - name: Login to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
 
+      - name: Convert username to lowercase and set environment variable
+        run: echo "GHCR_USERNAME_LOWER=$(echo ${{ secrets.GHCR_USERNAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Build and tag Docker images
         run: |
-          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/project-frontend:latest ./frontend
-          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/project-backend:latest ./backend
+          docker build -t ghcr.io/${{ env.GHCR_USERNAME_LOWER }}/project-frontend:latest ./frontend
+          docker build -t ghcr.io/${{ env.GHCR_USERNAME_LOWER }}/project-backend:latest ./backend
 
       - name: Push Docker images to GHCR
         run: |
-          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/project-frontend:latest
-          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/project-backend:latest
+          docker push ghcr.io/${{ env.GHCR_USERNAME_LOWER }}/project-frontend:latest
+          docker push ghcr.io/${{ env.GHCR_USERNAME_LOWER }}/project-backend:latest
