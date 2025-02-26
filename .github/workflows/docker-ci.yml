@@ -1,0 +1,27 @@
+name: CI/CD for Docker
+
+on:
+  push:
+    branches:
+      - main  # Run this workflow when pushing to the main branch
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
+      - name: Build and tag Docker images
+        run: |
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/project-frontend:latest ./frontend
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/project-backend:latest ./backend
+
+      - name: Push Docker images to GHCR
+        run: |
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/project-frontend:latest
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/project-backend:latest
