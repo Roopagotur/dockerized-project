@@ -9,7 +9,7 @@ services:
     depends_on:
       - backend
     networks:
-      - app-network
+      - frontend-network
     environment:
       - REACT_APP_API_URL=http://localhost:3006
 
@@ -21,40 +21,42 @@ services:
     depends_on:
       - mongodb
     networks:
-      - app-network
+      - backend-network
     environment:
-      - DATABASE_URL=mongodb://admin:password@mongodb:27017/myappdb?authSource=admin
+      - DATABASE_URL=mongodb://secure_user:securepassword@mongodb:27017/myappdb?authSource=admin
       - PORT=5000
 
   mongodb:
     image: mongo
-    ports:
-      - "3007:27017"
+    restart: always
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_ROOT_USERNAME=secure_user
+      - MONGO_INITDB_ROOT_PASSWORD=securepassword
       - MONGO_INITDB_DATABASE=myappdb
+    networks:
+      - backend-network
+    command: mongod --auth --bind_ip_all
     volumes:
       - mongo-data:/data/db
-    networks:
-      - app-network
 
   mongo-express:
     image: mongo-express
     restart: always
     ports:
-      - "8080:8081"
+      - "8080:8081"  # Expose only Mongo Express, not MongoDB
     environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
-      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=secure_user
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=securepassword
+      - ME_CONFIG_MONGODB_SERVER=mongodb  # Must match the MongoDB service name
     depends_on:
       - mongodb
     networks:
-      - app-network
+      - backend-network  # Same network as MongoDB to allow connection
 
 networks:
-  app-network:
+  backend-network:
+    driver: bridge
+  frontend-network:
     driver: bridge
 
 volumes:
